@@ -40,12 +40,30 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/assignment/:id", async(req,res)=>{
+    app.get("/assignment/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
-      const result = await assignmentsCollection.findOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(id) };
+      const result = await assignmentsCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/assignment/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateAssignment = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateAssign = {
+        $set: {
+          title: updateAssignment.title,
+          thumbnail: updateAssignment.thumbnail,
+          marks: updateAssignment.marks,
+          description: updateAssignment.description,
+          difficulty: updateAssignment.difficulty,
+          date: updateAssignment.date,
+        },
+      };
+      const result = await assignmentsCollection.updateOne(filter,updateAssign)
+      res.send(result);
+    });
 
     app.delete("/assignment/:id", async (req, res) => {
       const id = req.params.id;
@@ -54,7 +72,7 @@ async function run() {
       const result = await assignmentsCollection.deleteOne(query);
       res.send(result);
     });
-    
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
