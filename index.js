@@ -109,6 +109,26 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/pendingassignment/:id", async (req, res) => {
+      const id = req.params.id;
+      const giveMark = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateMark = {
+        $set: {
+          status: giveMark.status,
+          obtained_marks: giveMark.obtained_marks,
+          feedback: giveMark.feedback,
+        },
+      };
+      const result = await submitAssignmentsCollection.updateOne(
+        filter,
+        updateMark,
+        options
+      );
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
