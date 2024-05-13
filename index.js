@@ -91,8 +91,13 @@ async function run() {
 
     app.get("/submitassignments/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(email);
       const query = { email: email };
+      const result = await submitAssignmentsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/submitassignments", async (req, res) => {
+      const query = { status: "Pending" };
       const result = await submitAssignmentsCollection.find(query).toArray();
       res.send(result);
     });
