@@ -28,6 +28,10 @@ async function run() {
       .db("assignmentsDB")
       .collection("assignments");
 
+    const submitAssignmentsCollection = client
+      .db("assignmentsDB")
+      .collection("submitAssignments");
+
     app.post("/assignments", async (req, res) => {
       const newAssignment = req.body;
       const result = await assignmentsCollection.insertOne(newAssignment);
@@ -61,7 +65,10 @@ async function run() {
           date: updateAssignment.date,
         },
       };
-      const result = await assignmentsCollection.updateOne(filter,updateAssign)
+      const result = await assignmentsCollection.updateOne(
+        filter,
+        updateAssign
+      );
       res.send(result);
     });
 
@@ -70,6 +77,15 @@ async function run() {
       console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await assignmentsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Submitted Assignment
+    app.post("/submitassignments", async (req, res) => {
+      const submitAssignment = req.body;
+      const result = await submitAssignmentsCollection.insertOne(
+        submitAssignment
+      );
       res.send(result);
     });
 
