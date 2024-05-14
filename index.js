@@ -11,8 +11,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://cardoctor-bd.web.app",
-      "https://cardoctor-bd.firebaseapp.com",
+      "https://study-sync-97408.web.app",
+      "https://study-sync-97408.firebaseapp.com",
     ],
     credentials: true,
   })
@@ -31,6 +31,14 @@ const client = new MongoClient(uri, {
   },
 });
 
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+};
+
+
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
   if (!token) {
@@ -45,16 +53,12 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-};
+
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const assignmentsCollection = client
       .db("assignmentsDB")
@@ -87,7 +91,13 @@ async function run() {
     });
 
     app.get("/assignments", async (req, res) => {
-      const cursor = assignmentsCollection.find();
+      const filter = req.query.filter;
+      console.log(filter);
+      let query ={}
+      if(filter){
+        query = {difficulty : filter}
+      }
+      const cursor = assignmentsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -178,7 +188,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
