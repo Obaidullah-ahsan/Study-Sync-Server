@@ -31,13 +31,11 @@ const client = new MongoClient(uri, {
   },
 });
 
-
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 };
-
 
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
@@ -52,8 +50,6 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
-
-
 
 async function run() {
   try {
@@ -70,7 +66,6 @@ async function run() {
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log("tok user", user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "356d",
       });
@@ -84,7 +79,7 @@ async function run() {
         .send({ success: true });
     });
 
-    app.post("/assignments",verifyToken, async (req, res) => {
+    app.post("/assignments", verifyToken, async (req, res) => {
       const newAssignment = req.body;
       const result = await assignmentsCollection.insertOne(newAssignment);
       res.send(result);
@@ -92,12 +87,15 @@ async function run() {
 
     app.get("/assignments", async (req, res) => {
       const filter = req.query.filter;
-      console.log(filter);
-      let query ={}
-      if(filter){
-        query = {difficulty : filter}
+      const search = req.query.search;
+      let searchQuery = {
+        title: { $regex: search, $options: "i" },
+      };
+      let query = {};
+      if (filter) {
+        query = { difficulty: filter };
       }
-      const cursor = assignmentsCollection.find(query);
+      const cursor = assignmentsCollection.find(searchQuery, query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -132,14 +130,13 @@ async function run() {
 
     app.delete("/assignment/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await assignmentsCollection.deleteOne(query);
       res.send(result);
     });
 
     // Submitted Assignment
-    app.post("/submitassignments",verifyToken, async (req, res) => {
+    app.post("/submitassignments", verifyToken, async (req, res) => {
       const submitAssignment = req.body;
       const result = await submitAssignmentsCollection.insertOne(
         submitAssignment
@@ -154,20 +151,20 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/submitassignments",verifyToken, async (req, res) => {
+    app.get("/submitassignments", verifyToken, async (req, res) => {
       const query = { status: "Pending" };
       const result = await submitAssignmentsCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get("/pendingassignment/:id",verifyToken, async (req, res) => {
+    app.get("/pendingassignment/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await submitAssignmentsCollection.findOne(query);
       res.send(result);
     });
 
-    app.put("/pendingassignment/:id",verifyToken, async (req, res) => {
+    app.put("/pendingassignment/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const giveMark = req.body;
       const filter = { _id: new ObjectId(id) };
